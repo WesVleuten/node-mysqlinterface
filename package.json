@@ -1,12 +1,12 @@
 {
-  "name": "node-mysql-tableinterface",
-  "version": "1.0.0",
+  "name": "node-mysqlinterface",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Wes van der Vleuten <me@justwes.com>",
   "license": "ISC",
   "dependencies": {
     "async": "^2.0.1",
