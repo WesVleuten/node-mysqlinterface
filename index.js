@@ -105,7 +105,14 @@ var Table = function(opt, cb) {
 
 module.exports = function mysqlTI(opt, scb) {
     var db = mysql.createConnection(opt);
-    var database = {};
+    var database = {
+        close: function(cb) {
+            db.end(function(err) {
+                if (cb) return cb(err);
+                if (err) throw new Error('Couldnt end dbcon', err);
+            });
+        }
+    };
 
     async.parallel({
         links: function(pcb) {
