@@ -49,11 +49,13 @@ var Table = function(opt, cb) {
                 for (var i = 0; i < links.length; i++) {
                     var link = links[i];
 
-                    var extern = link[1];
-                    var intern = link[0];
-                    if (link[1].table == tablename) {
-                        extern = link[0];
-                        intern = link[1];
+                    var extern = link[0];
+                    var intern = link[1];
+                    var reverse = false;
+                    if (link[0].table == tablename) {
+                        extern = link[1];
+                        intern = link[0];
+                        reverse = true;
                     }
 
                     self['get' + extern.table] = function(cb) {
@@ -61,6 +63,15 @@ var Table = function(opt, cb) {
                         getter[extern.column] = self[intern.column];
                         tableinterface[extern.table].get(getter, cb);
                     };
+                    if (!reverse) {
+                        self['new' + extern.table] = function(cb) {
+                            tableinterface[extern.table].new(function(err, newobject) {
+                                if (err) return cb(err);
+                                newobject[extern.column] = self[intern.column];
+                                cb(null, newobject);
+                            });
+                        };
+                    }
                 }
 
                 self.save = function(cb) {
