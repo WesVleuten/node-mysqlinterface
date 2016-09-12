@@ -9,6 +9,8 @@ var TableInterface = function(opt, cb) {
 
         cb(null, {
             get: function(obj, cb) {
+	            if (typeof obj == 'number') obj = {id: obj};
+	            
                 db.query('SELECT * FROM ?? WHERE ?', [tablename, obj], function(err, data) {
                     if (err) return cb(err);
                     if (data.length == 0) return cb(null, []);
