@@ -11,7 +11,7 @@ var Table = function(opt, cb) {
             ecb();
         }, function() {
             cb(null, function(givenbase) {
-                var self = givenbase || baseself;
+                var self = Object.assign({}, givenbase || baseself);
 
                 for (var i = 0; i < links.length; i++) {
                     var link = links[i];
