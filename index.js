@@ -1,11 +1,14 @@
 var mysql = require('mysql');
 var async = require('async');
+var debug = require('debug')('mysqlinterface:main');
 var _ = require('underscore');
 var TableInterface = require('./tableinterface.js');
 
 module.exports = function mysqlTI(opt, scb) {
     var db = mysql.createConnection(opt);
     var database = {
+	    query: db.query,
+	    escape: db.escape,
         close: function(cb) {
             db.end(function(err) {
                 if (cb) return cb(err);

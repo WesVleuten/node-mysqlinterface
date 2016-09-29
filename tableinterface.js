@@ -1,4 +1,5 @@
 var async = require('async');
+var debug = require('debug')('mysqlinterface:interface');
 var Table = require('./table.js');
 
 var TableInterface = function(opt, cb) {
@@ -10,8 +11,17 @@ var TableInterface = function(opt, cb) {
         cb(null, {
             get: function(obj, cb) {
 	            if (typeof obj == 'number') obj = {id: obj};
-	            
-                db.query('SELECT * FROM ?? WHERE ?', [tablename, obj], function(err, data) {
+
+                var sqlquery = 'SELECT * FROM ?? WHERE';
+                var values = [tablename];
+                var objk = Object.keys(obj);
+                for (var i = 0; i < objk.length; i++) {
+                    values.push(objk[i], obj[objk[i]]);
+                    if (i != 0) sqlquery += ' &&';
+                    sqlquery += ' ?? = ?';
+                }
+
+                db.query(sqlquery, values, function(err, data) {
                     if (err) return cb(err);
                     if (data.length == 0) return cb(null, []);
                     var returner = [];

@@ -1,9 +1,9 @@
 var async = require('async');
-
+var debug = require('debug')('mysqlinterface:table_define');
 var Table = function(opt, cb) {
     var db = opt.connection, tablename = opt.table_name, links = opt.links, tableinterface = opt.tableinterface;
 
-    db.query("DESCRIBE ??", [tablename], function(err, tableinfo) {
+    db.query("DESCRIBE ??", [ tablename ], function(err, tableinfo) {
         if (err) return cb(err);
         var baseself = {};
         async.each(tableinfo, function(inforow, ecb) {
