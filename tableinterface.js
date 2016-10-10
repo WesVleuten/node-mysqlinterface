@@ -1,41 +1,100 @@
 var async = require('async');
+var mysql = require('mysql');
 var debug = require('debug')('mysqlinterface:interface');
+var sqldebug = require('debug')('mysqlinterface:query');
 var Table = require('./table.js');
 
+var generateInterface = function(db, tablename, baseObject) {
+    var self = {
+        get: function(obj, cb) {
+            //Check if no object was passed or if object is empty, if the case redirect to get all
+            if (!obj || Object.keys(obj).length == 0) return self.getAll(cb);
+
+            //If obj is number use it as id in filter
+            if (typeof obj == 'number') obj = {id: obj};
+
+            //Default template of sql query
+            var sqlquery = 'SELECT * FROM ?? WHERE';
+
+            //Values include tablename for proper escape
+            var values = [tablename];
+
+            //Loop through object to create where statement
+            var objk = Object.keys(obj);
+            for (var i = 0; i < objk.length; i++) {
+                values.push(objk[i], obj[objk[i]]);
+                if (i != 0) sqlquery += ' &&';
+                sqlquery += ' ?? = ?';
+            }
+
+            //format and log query
+            var q = mysql.format(sqlquery, values);
+            sqldebug(q);
+
+            //Do query
+            db.query(q, function(err, data) {
+                self.parseRawObject(err, data, cb);
+            });
+        },
+        getAll: function(cb) {
+            //Format and Log
+            var q = mysql.format('SELECT * FROM ??', [tablename]);
+            sqldebug(q);
+
+            //Directly get all rows from table
+            db.query(q, function(err, data) {
+                self.parseRawObject(err, data, cb);
+            });
+        },
+        getById: function(id, cb) {
+            //Get object by id
+            self.get({
+                id: id
+            }, function(err, objects) {
+                if (err) return cb(err);
+                //Disallow multiple identifiers
+                if (objects.length > 1) return cb('Multiple ids found');
+                //Prevent not found error wihtin array
+                if (objects.length < 1) return cb(null, []);
+                //Return single object
+                return cb(err, objects[0]);
+            });
+        },
+        new: function(cb) {
+            //Create empty object
+            cb(null, new baseObject())
+        },
+        parseRawObject: function (err, data, cb) {
+            //If error occured report accordingly
+            if (err) return cb(err);
+
+            //If no data has been returned prevent loop
+            if (data.length == 0) return cb(null, []);
+
+            //Create objects and pass them to callback
+            var returner = [];
+            async.each(data, function(rawbaseobject, ecb) {
+                returner.push(new baseObject(rawbaseobject));
+                ecb();
+            }, function() {
+                cb(null, returner);
+            });
+        }
+    };
+    return self;
+};
+
 var TableInterface = function(opt, cb) {
-    var db = opt.connection, tablename = opt.table_name;
+    var db = opt.connection,
+        tablename = opt.table_name;
 
     new Table(opt, function(err, baseObject) {
         if (err) return cb(err);
-
-        cb(null, {
-            get: function(obj, cb) {
-	            if (typeof obj == 'number') obj = {id: obj};
-
-                var sqlquery = 'SELECT * FROM ?? WHERE';
-                var values = [tablename];
-                var objk = Object.keys(obj);
-                for (var i = 0; i < objk.length; i++) {
-                    values.push(objk[i], obj[objk[i]]);
-                    if (i != 0) sqlquery += ' &&';
-                    sqlquery += ' ?? = ?';
-                }
-
-                db.query(sqlquery, values, function(err, data) {
-                    if (err) return cb(err);
-                    if (data.length == 0) return cb(null, []);
-                    var returner = [];
-                    async.each(data, function(rawbaseobject, ecb) {
-                        returner.push(new baseObject(rawbaseobject));
-                    });
-                    cb(null, returner);
-                });
-            },
-            new: function(cb) {
-                cb(null, new baseObject())
-            }
-        });
+        cb(null, generateInterface(db, tablename, baseObject));
+        //Log that initialization was succesful
+        debug('Table infterface for ' + tablename + ' initialized');
     });
 }
 
+//Make table interface publicly avalible
 module.exports = exports = TableInterface;

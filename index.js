@@ -3,6 +3,7 @@ var async = require('async');
 var debug = require('debug')('mysqlinterface:main');
 var _ = require('underscore');
 var TableInterface = require('./tableinterface.js');
+var sqldebug = require('debug')('mysqlinterface:query');
 
 module.exports = function mysqlTI(opt, scb) {
     var db = mysql.createConnection(opt);
@@ -19,7 +20,9 @@ module.exports = function mysqlTI(opt, scb) {
 
     async.parallel({
         links: function(pcb) {
-            db.query("SELECT TABLE_NAME,COLUMN_NAME,CONSTRAINT_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_COLUMN_NAME IS NOT NULL AND TABLE_SCHEMA = ?", [ opt.database ], function(err, result) {
+            var q = mysql.format("SELECT TABLE_NAME,COLUMN_NAME,CONSTRAINT_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_COLUMN_NAME IS NOT NULL AND TABLE_SCHEMA = ?", [ opt.database ]);
+            sqldebug(q);
+            db.query(q, function(err, result) {
                 if (err) return pcb(err);
                 var returner = [];
                 async.each(result, function(con, ecb) {
@@ -40,7 +43,9 @@ module.exports = function mysqlTI(opt, scb) {
             });
         },
         table: function(cb) {
-            db.query("SELECT TABLE_NAME as 'name' FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = ?", [ opt.database ], function(err, tables) {
+            var q = mysql.format("SELECT TABLE_NAME as 'name' FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = ?", [ opt.database ]);
+            sqldebug(q);
+            db.query(q, function(err, tables) {
                 if (err) return cb(err);
                 cb(err, tables);
             });

@@ -1,9 +1,14 @@
 var async = require('async');
+var mysql = require('mysql');
 var debug = require('debug')('mysqlinterface:table_define');
+var sqldebug = require('debug')('mysqlinterface:query');
 var Table = function(opt, cb) {
     var db = opt.connection, tablename = opt.table_name, links = opt.links, tableinterface = opt.tableinterface;
 
-    db.query("DESCRIBE ??", [ tablename ], function(err, tableinfo) {
+    var q = mysql.format("DESCRIBE ??", [ tablename ]);
+    sqldebug(q);
+
+    db.query(q, function(err, tableinfo) {
         if (err) return cb(err);
         var baseself = {};
         async.each(tableinfo, function(inforow, ecb) {
@@ -43,21 +48,28 @@ var Table = function(opt, cb) {
 
                 self.save = function(cb) {
                     if (self.id == null) {
-                        db.query("INSERT INTO ?? SET ?", [
+                        var q = mysql.format("INSERT INTO ?? SET ?", [
                             tablename,
                             self
-                        ], function (err, result) {
+                        ]);
+                        sqldebug(q);
+
+                        db.query(q, function (err, result) {
                             if (err) return cb(err);
                             self.id = result.insertId;
                             cb();
                         });
                         return;
                     }
-                    db.query("UPDATE ?? SET ? WHERE ?", [
+
+                    var q = mysql.format("UPDATE ?? SET ? WHERE ?", [
                         tablename,
                         self,
                         { id: self.id }
-                    ], function (err, result) {
+                    ]);
+                    sqldebug(q);
+
+                    db.query(q, function (err, result) {
                         if (err) return cb(err);
                         cb();
                     });
@@ -65,10 +77,12 @@ var Table = function(opt, cb) {
 
                 self.delete = function(cb) {
                     if (self.id == null) return cb(new Error('Id is null'));
-                    db.query("DELETE FROM ?? WHERE ?", [
+                    var q = mysql.format("DELETE FROM ?? WHERE ?", [
                         tablename,
                         { id: self.id }
-                    ], function(err) {
+                    ]);
+                    sqldebug(q);
+                    db.query(q, function(err) {
                         if (err) return cb(err);
                         self.id = null;
                         cb();
