@@ -57,6 +57,17 @@ var Table = function(opt, cb) {
 
                 self.save = function(cb) {
                     if (self.id == null) {
+                        //Replace current timestamp and now with current time
+                        var selfkeys = Object.keys(self);
+                        for (var i = 0; i < selfkeys.length; i++) {
+                            var me = self[selfkeys[i]];
+                            if (typeof me == 'function') continue;
+                            if (me == 'CURRENT_TIMESTAMP' || me == 'NOW()') {
+                                self[selfkeys[i]] = new Date();
+                            }
+                        }
+
+                        //Parse mysql query
                         var q = mysql.format("INSERT INTO ?? SET ?", [
                             tablename,
                             self
