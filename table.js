@@ -12,7 +12,16 @@ var Table = function(opt, cb) {
         if (err) return cb(err);
         var baseself = {};
         async.each(tableinfo, function(inforow, ecb) {
-            baseself[inforow.Field] = null;
+            if (inforow.Null == 'NO' && inforow.Default != null) {
+                var type = inforow.Type.split('(').shift().toUpperCase();
+                if (['TINYINT', 'SMALLINT', 'MEDIUMINT', 'INT', 'BIGINT'].indexOf(type) != -1) {
+                    baseself[inforow.Field] = parseInt(inforow.Default);
+                } else {
+                    baseself[inforow.Field] = inforow.Default;
+                }
+            } else {
+                baseself[inforow.Field] = null;
+            }
             ecb();
         }, function() {
             cb(null, function(givenbase) {
