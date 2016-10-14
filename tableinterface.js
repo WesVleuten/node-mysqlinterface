@@ -6,6 +6,7 @@ var Table = require('./table.js');
 
 var generateInterface = function(db, tablename, baseObject) {
     var self = {
+        //Simple get by obj method
         get: function(obj, cb) {
             //Check if no object was passed or if object is empty, if the case redirect to get all
             if (!obj || Object.keys(obj).length == 0) return self.getAll(cb);
@@ -33,9 +34,14 @@ var generateInterface = function(db, tablename, baseObject) {
 
             //Do query
             db.query(q, function(err, data) {
+                //If error occured report accordingly
+                if (err) return cb(err);
+
                 self.parseRawObject(err, data, cb);
             });
         },
+        //Get all objects from table
+        //WARNING: for large tables this is a resource expensive task
         getAll: function(cb) {
             //Format and Log
             var q = mysql.format('SELECT * FROM ??', [tablename]);
@@ -43,9 +49,13 @@ var generateInterface = function(db, tablename, baseObject) {
 
             //Directly get all rows from table
             db.query(q, function(err, data) {
+                //If error occured report accordingly
+                if (err) return cb(err);
+
                 self.parseRawObject(err, data, cb);
             });
         },
+        //Get one object by id
         getById: function(id, cb) {
             //Get object by id
             self.get({
@@ -60,14 +70,32 @@ var generateInterface = function(db, tablename, baseObject) {
                 return cb(err, objects[0]);
             });
         },
+        //Create new object
         new: function(cb) {
             //Create empty object
             cb(null, new baseObject())
         },
-        parseRawObject: function (err, data, cb) {
-            //If error occured report accordingly
-            if (err) return cb(err);
+        //Function allows usage of safe custom queries
+        query: function(sqlraw, sqlvalues, cb) {
+            //Add tablename if it is not in the sqlvalues list
+            if (sqlvalues.indexOf(tablename) != 0) sqlvalues.unshift(tablename);
 
+            //Format sql statement
+            var q = mysql.format(sqlraw, sqlvalues);
+
+            //Log to debug
+            sqldebug(q);
+
+            //Run query
+            db.query(q, function(err, data) {
+                //If error occured report accordingly
+                if (err) return cb(err);
+
+                self.parseRawObject(err, data, cb);
+            });
+        },
+        //Parse raw objects for easy usage
+        parseRawObject: function (err, data, cb) {
             //If no data has been returned prevent loop
             if (data.length == 0) return cb(null, []);
 
