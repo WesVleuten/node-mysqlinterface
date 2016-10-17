@@ -45,13 +45,20 @@ var Table = function(opt, cb) {
                         reverse = true;
                     }
 
-                    self['get' + capitalize(intern.column)] = function(cb) {
-                        var getter = {};
-                        getter[extern.column] = self[intern.column];
-                        tableinterface[extern.table].get(getter, cb);
-                    };
-                    if (!reverse) {
-                        self['new' + capitalize(intern.column)] = function(cb) {
+
+                    if (reverse) {
+                        self['get' + capitalize(intern.column)] = function(cb) {
+                            var getter = {};
+                            getter[extern.column] = self[intern.column];
+                            tableinterface[extern.table].get(getter, cb);
+                        };
+                    } else {
+                        self['get' + capitalize(extern.column)] = function(cb) {
+                            var getter = {};
+                            getter[extern.column] = self[intern.column];
+                            tableinterface[extern.table].get(getter, cb);
+                        };
+                        self['new' + capitalize(extern.column)] = function(cb) {
                             tableinterface[extern.table].new(function(err, newobject) {
                                 if (err) return cb(err);
                                 newobject[extern.column] = self[intern.column];
