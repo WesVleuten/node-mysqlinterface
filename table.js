@@ -2,6 +2,12 @@ var async = require('async');
 var mysql = require('mysql');
 var debug = require('debug')('mysqlinterface:table_define');
 var sqldebug = require('debug')('mysqlinterface:query');
+
+
+function capitalize(s) {
+    return s && s[0].toUpperCase() + s.slice(1);
+}
+
 var Table = function(opt, cb) {
     var db = opt.connection, tablename = opt.table_name, links = opt.links, tableinterface = opt.tableinterface;
 
@@ -39,13 +45,13 @@ var Table = function(opt, cb) {
                         reverse = true;
                     }
 
-                    self['get' + intern.column] = function(cb) {
+                    self['get' + capitalize(intern.column)] = function(cb) {
                         var getter = {};
                         getter[extern.column] = self[intern.column];
                         tableinterface[extern.table].get(getter, cb);
                     };
                     if (!reverse) {
-                        self['new' + intern.column] = function(cb) {
+                        self['new' + capitalize(intern.column)] = function(cb) {
                             tableinterface[extern.table].new(function(err, newobject) {
                                 if (err) return cb(err);
                                 newobject[extern.column] = self[intern.column];
