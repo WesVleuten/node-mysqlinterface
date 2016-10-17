@@ -39,13 +39,13 @@ var Table = function(opt, cb) {
                         reverse = true;
                     }
 
-                    self['get' + extern.table] = function(cb) {
+                    self['get' + intern.column] = function(cb) {
                         var getter = {};
                         getter[extern.column] = self[intern.column];
                         tableinterface[extern.table].get(getter, cb);
                     };
                     if (!reverse) {
-                        self['new' + extern.table] = function(cb) {
+                        self['new' + intern.column] = function(cb) {
                             tableinterface[extern.table].new(function(err, newobject) {
                                 if (err) return cb(err);
                                 newobject[extern.column] = self[intern.column];

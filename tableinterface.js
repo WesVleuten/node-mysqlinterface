@@ -57,7 +57,7 @@ var generateInterface = function(db, tablename, baseObject) {
         },
         //Get one object by id
         getById: function(id, cb) {
-            //Get object by id
+            //Use internal object to fetch object
             self.get({
                 id: id
             }, function(err, objects) {
@@ -120,7 +120,7 @@ var TableInterface = function(opt, cb) {
         if (err) return cb(err);
         cb(null, generateInterface(db, tablename, baseObject));
         //Log that initialization was succesful
-        debug('Table infterface for ' + tablename + ' initialized');
+        debug(tablename + ' initialized');
     });
 }
 
