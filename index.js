@@ -10,6 +10,12 @@ module.exports = function mysqlTI(opt, scb) {
     var database = {
 	    query: db.query,
 	    escape: db.escape,
+        getDB: function(cb) {
+            if (db)
+                cb(null, db);
+            else
+                cb(true);
+        },
         close: function(cb) {
             db.end(function(err) {
                 if (cb) return cb(err);
