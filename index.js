@@ -8,8 +8,12 @@ var sqldebug = require('debug')('mysqlinterface:query');
 module.exports = function mysqlTI(opt, scb) {
     var db = mysql.createConnection(opt);
     var database = {
-	    query: db.query,
-	    escape: db.escape,
+	    query: function(a,b,c) {
+            return db.query(a, b, c);
+        },
+	    escape: function(a) {
+            return db.escape(a);
+        },
         getDB: function(cb) {
             if (db)
                 cb(null, db);
