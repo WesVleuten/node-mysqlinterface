@@ -23,9 +23,18 @@ var generateInterface = function(db, tablename, baseObject) {
             //Loop through object to create where statement
             var objk = Object.keys(obj);
             for (var i = 0; i < objk.length; i++) {
-                values.push(objk[i], obj[objk[i]]);
+                var key = objk[i];
+                var val = obj[key];
+                values.push(key);
                 if (i != 0) sqlquery += ' &&';
-                sqlquery += ' ?? = ?';
+
+                if (val === null) {
+                    sqlquery += ' ?? IS NULL';
+                } else {
+                    values.push(val);
+                    sqlquery += ' ?? = ?';
+                }
+
             }
 
             //format and log query
