@@ -37,22 +37,27 @@ module.exports = function mysqlTI(opt, scb) {
                 });
 
             },
-            query: function(a, b, c) {
-                var doquery = function() {
-                    idb.query(a, b, c);
-                };
+
+            connectionCheck(cb) {
                 if (!connected) {
-                    this.connect(doquery);
+                    this.connect(cb);
                 } else {
-                    doquery();
+                    cb();
                 }
+            },
+
+            query: function(a, b, c) {
+                this.connectionCheck(function() {
+                    idb.query(a, b, c);
+                });
             },
             end: function(cb) {
                 connected = false;
+                if (dbi == null) return cb();
                 return dbi.end(cb);
             },
             escape: function(str) {
-                return dbi.escape(str);
+                return mysql.escape(str);
             }
 
         };
