@@ -1,8 +1,8 @@
 var async = require('async');
 var mysql = require('mysql');
 var debug = require('debug')('mysqlinterface:table_define');
-var sqldebug = require('debug')('mysqlinterface:query');
-
+var sqldebuglog = require('debug')('mysqlinterface:query');
+var sqldebug = function (msg) { return sqldebuglog(msg.slice(0,500)); }
 
 function capitalize(s) {
     return s && s[0].toUpperCase() + s.slice(1);

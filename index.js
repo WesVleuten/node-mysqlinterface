@@ -4,7 +4,8 @@ var debug = require('debug')('mysqlinterface:main');
 var debugconnection = require('debug')('mysqlinterface:connection');
 var _ = require('underscore');
 var TableInterface = require('./tableinterface.js');
-var sqldebug = require('debug')('mysqlinterface:query');
+var sqldebuglog = require('debug')('mysqlinterface:query');
+var sqldebug = function (msg) { return sqldebuglog(msg.slice(0,500)); }
 
 module.exports = function mysqlTI(opt, scb) {
     var db = function() {

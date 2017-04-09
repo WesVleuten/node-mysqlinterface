@@ -1,7 +1,8 @@
 var async = require('async');
 var mysql = require('mysql');
 var debug = require('debug')('mysqlinterface:interface');
-var sqldebug = require('debug')('mysqlinterface:query');
+var sqldebuglog = require('debug')('mysqlinterface:query');
+var sqldebug = function (msg) { return sqldebuglog(msg.slice(0,500)); }
 var Table = require('./table.js');
 
 var generateInterface = function(db, tablename, baseObject) {
